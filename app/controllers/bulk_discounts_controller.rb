@@ -20,6 +20,10 @@ class BulkDiscountsController < ApplicationController
     end
   end
 
+  def show
+    @discount = BulkDiscount.find_by(discount_params)
+  end
+
   def destroy
     discount = BulkDiscount.find_by(discount_params)
     discount.destroy
