@@ -1,5 +1,5 @@
 class BulkDiscountsController < ApplicationController
-  before_action :find_merchant, only: [:index, :new]
+  before_action :find_merchant, only: [:index, :new, :destroy]
 
   def index
     @discounts = @merchant.bulk_discounts
@@ -20,9 +20,15 @@ class BulkDiscountsController < ApplicationController
     end
   end
 
+  def destroy
+    discount = BulkDiscount.find_by(discount_params)
+    discount.destroy
+    redirect_to merchant_bulk_discounts_path(@merchant)
+  end
+
   private
   def discount_params
-    params.permit(:percentage, :quantity, :merchant_id)
+    params.permit(:percentage, :quantity, :merchant_id, :id)
   end
 
   def find_merchant
