@@ -1,0 +1,10 @@
+<%= render partial: "shared/nav" %>
+
+<h1>Edit Promotion #<%= @discount.id %></h1>
+<%= render partial: "form", locals: { 
+  method: :patch, 
+  url: merchant_bulk_discount_path(@merchant, @discount), 
+  model: @bulk_discount,
+  perc_value: @discount.percentage,
+  quan_value: @discount.quantity
+  }%>
