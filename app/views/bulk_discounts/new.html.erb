@@ -1,0 +1,5 @@
+<%= render partial: "shared/nav" %>
+
+<h1>Create a New Bulk Discount Promotion</h1>
+
+<%= render partial: "form", locals: { method: :post, url: merchant_bulk_discounts_path(@merchant), model: @bulk_discount}%>
