@@ -11,6 +11,8 @@ RSpec.describe InvoiceItem, type: :model do
   describe "relationships" do
     it { should belong_to :invoice }
     it { should belong_to :item }
+    it { should have_one :merchant }
+    it { should have_many :bulk_discounts }
   end
 
   describe "class methods" do
@@ -34,9 +36,74 @@ RSpec.describe InvoiceItem, type: :model do
       @ii_2 = InvoiceItem.create!(invoice_id: @i1.id, item_id: @item_2.id, quantity: 1, unit_price: 8, status: 0)
       @ii_3 = InvoiceItem.create!(invoice_id: @i2.id, item_id: @item_3.id, quantity: 1, unit_price: 5, status: 2)
       @ii_4 = InvoiceItem.create!(invoice_id: @i3.id, item_id: @item_3.id, quantity: 1, unit_price: 5, status: 1)
+
     end
+
     it 'incomplete_invoices' do
       expect(InvoiceItem.incomplete_invoices).to eq([@i1, @i3])
+    end
+
+    describe "discount methods" do
+      it "discounts count by same item, and aren't cumulative to all items" do
+        merchantA = Merchant.create!(name: "Queen Soopers")
+        discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
+        itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
+        itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
+        customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
+
+        invoiceA = Invoice.create!(customer: customer, status: 2)
+        invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 5, unit_price: 1000, status: 1)
+        invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 5, unit_price: 1000, status: 1)
+
+        expect(invoice_item1.discount).to eq(nil) 
+        expect(invoice_item2.discount).to eq(nil) 
+
+        invoice_item1.update(quantity: 10)
+
+        expect(invoice_item1.discount).to eq(discountA)
+        expect(invoice_item2.discount).to eq(nil)
+      end
+
+      it "discounts by greatest applicable discount" do
+        merchantA = Merchant.create!(name: "Queen Soopers")
+        discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
+        discountB = merchantA.bulk_discounts.create!(percentage: 30, quantity: 15, merchant: merchantA)
+        itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
+        itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
+        customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
+
+        invoiceA = Invoice.create!(customer: customer, status: 2)
+        invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 12, unit_price: 1000, status: 1)
+        invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 15, unit_price: 1000, status: 1)
+
+        expect(invoice_item1.discount).to eq(discountA)
+        expect(invoice_item2.discount).to eq(discountB)
+
+        discountB.update(percentage: 15)
+
+        expect(invoice_item1.discount).to eq(discountA)
+        expect(invoice_item2.discount).to eq(discountA)
+      end
+
+      it "discounts by specific merchant" do
+        merchantA = Merchant.create!(name: "Queen Soopers")
+        merchantB = Merchant.create!(name: "Someone Else")
+        discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
+        discountB = merchantA.bulk_discounts.create!(percentage: 30, quantity: 15, merchant: merchantA)
+        itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
+        itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
+        itemC = merchantB.items.create!(name: 'Thing', description: 'just a thing', unit_price: 3000, merchant: merchantB)
+        customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
+
+        invoiceA = Invoice.create!(customer: customer, status: 2)
+        invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 12, unit_price: 1000, status: 1)
+        invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 15, unit_price: 2000, status: 1)
+        invoice_item3 = InvoiceItem.create!(invoice: invoiceA, item: itemC, quantity: 15, unit_price: 3000, status: 1)
+
+        expect(invoice_item1.discount).to eq(discountA)
+        expect(invoice_item2.discount).to eq(discountB)
+        expect(invoice_item3.discount).to eq(nil)
+      end
     end
   end
 end
