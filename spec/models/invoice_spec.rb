@@ -13,133 +13,109 @@ RSpec.describe Invoice, type: :model do
   end
 
   describe "instance methods" do
-    it "total_revenue" do
+    before do
       @merchant1 = Merchant.create!(name: 'Hair Care')
+      @merchant2 = Merchant.create!(name: 'Queen Soopers')
       @item_1 = Item.create!(name: "Shampoo", description: "This washes your hair", unit_price: 10, merchant_id: @merchant1.id, status: 1)
       @item_8 = Item.create!(name: "Butterfly Clip", description: "This holds up your hair but in a clip", unit_price: 5, merchant_id: @merchant1.id)
+      @item_9 = Item.create!(name: "Cheese", description: "It's cheese", unit_price: 10, merchant: @merchant2, status: 1)
       @customer_1 = Customer.create!(first_name: 'Joey', last_name: 'Smith')
       @invoice_1 = Invoice.create!(customer_id: @customer_1.id, status: 2, created_at: "2012-03-27 14:54:09")
-      @ii_1 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_1.id, quantity: 9, unit_price: 10, status: 2)
-      @ii_11 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_8.id, quantity: 1, unit_price: 10, status: 1)
-
-      expect(@invoice_1.total_revenue).to eq(100)
+      @ii_1 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_1.id, quantity: 12, unit_price: 10, status: 2)
+      @ii_11 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_8.id, quantity: 15, unit_price: 10, status: 1)
+      @ii_12 = InvoiceItem.create!(invoice: @invoice_1, item: @item_9, quantity: 12, unit_price: 9, status: 1)
     end
 
-    xit "can filter invoice items by merchant" do      
-      expect(@invoice1.invoice_items_for(@merchant1)).to eq([@invoice_item1])
+    it "calculates total_revenue for all merchants and items" do
+      expect(@invoice_1.total_revenue).to eq(378.0)
+    end
+
+    it "can filter invoice items by merchant" do      
+      expect(@invoice_1.invoice_items_for(@merchant1)).to eq([@ii_1, @ii_11])
     end
   
-    xit "can filter total_revenue by merchant" do
-      expect(@invoice1.revenue_for(@merchant1)).to eq(68175)
+    it "can filter total revenue by merchant" do
+      expect(@invoice_1.revenue_for(@merchant1)).to eq(270)
+      expect(@invoice_1.revenue_for(@merchant2)).to eq(108)
     end
 
-    it "all_discounts" do
-      @merchant1 = Merchant.create!(name: 'Hair Care')
-      @item_1 = Item.create!(name: "Shampoo", description: "This washes your hair", unit_price: 10, merchant_id: @merchant1.id, status: 1)
-      @item_8 = Item.create!(name: "Butterfly Clip", description: "This holds up your hair but in a clip", unit_price: 5, merchant_id: @merchant1.id)
-      @customer_1 = Customer.create!(first_name: 'Joey', last_name: 'Smith')
-      @invoice_1 = Invoice.create!(customer_id: @customer_1.id, status: 2, created_at: "2012-03-27 14:54:09")
-      @ii_1 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_1.id, quantity: 10, unit_price: 10, status: 2)
-      @ii_11 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_8.id, quantity: 15, unit_price: 10, status: 1)
+    it "calculates discounts across all items and merchants, when discount quantity thresholds are met, and uses greatest potential discount" do
+      expect(@invoice_1.total_revenue).to eq(378)
+      expect(@invoice_1.all_discounts).to eq(0)
+      expect(@invoice_1.revenue_with_discounts).to eq(378)
 
-      expect(@invoice_1.total_revenue).to eq(250)
-      expect(@invoice_1.all_discounts).to eq(0)
       BulkDiscount.create!(percentage: 40, quantity: 20, merchant: @merchant1)
-      expect(@invoice_1.total_revenue).to eq(250)
+      expect(@invoice_1.total_revenue).to eq(378)
       expect(@invoice_1.all_discounts).to eq(0)
+      expect(@invoice_1.revenue_with_discounts).to eq(378)
+
       BulkDiscount.create!(percentage: 30, quantity: 15, merchant: @merchant1)
-      expect(@invoice_1.total_revenue).to eq(250)
+      expect(@invoice_1.total_revenue).to eq(378)
       expect(@invoice_1.all_discounts).to eq(45)
+      expect(@invoice_1.revenue_with_discounts).to eq(333)
 
       BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant1)
       
-      expect(@invoice_1.total_revenue).to eq(250)
-      expect(@invoice_1.all_discounts).to eq(65)
+      expect(@invoice_1.total_revenue).to eq(378)
+      expect(@invoice_1.all_discounts).to eq(69)
+      expect(@invoice_1.revenue_with_discounts).to eq(309)
+
+      BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant2)
+
+      expect(@invoice_1.total_revenue).to eq(378)
+      expect(@invoice_1.all_discounts).to eq(90.6)
+      expect(@invoice_1.revenue_with_discounts).to eq(287.4)
     end
 
-    it "revenue_with_discounts" do
-      @merchant1 = Merchant.create!(name: 'Hair Care')
-      @item_1 = Item.create!(name: "Shampoo", description: "This washes your hair", unit_price: 10, merchant_id: @merchant1.id, status: 1)
-      @item_8 = Item.create!(name: "Butterfly Clip", description: "This holds up your hair but in a clip", unit_price: 5, merchant_id: @merchant1.id)
-      @customer_1 = Customer.create!(first_name: 'Joey', last_name: 'Smith')
-      @invoice_1 = Invoice.create!(customer_id: @customer_1.id, status: 2, created_at: "2012-03-27 14:54:09")
-      @ii_1 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_1.id, quantity: 10, unit_price: 10, status: 2)
-      @ii_11 = InvoiceItem.create!(invoice_id: @invoice_1.id, item_id: @item_8.id, quantity: 15, unit_price: 10, status: 1)
-
-      expect(@invoice_1.total_revenue).to eq(250)
-      expect(@invoice_1.revenue_with_discounts).to eq(250)
+    it "calculates total discounts for merchant" do
+      expect(@invoice_1.discounts_for(@merchant1)).to eq(0)
+      expect(@invoice_1.discounts_for(@merchant2)).to eq(0)
       BulkDiscount.create!(percentage: 40, quantity: 20, merchant: @merchant1)
-      expect(@invoice_1.total_revenue).to eq(250)
-      expect(@invoice_1.revenue_with_discounts).to eq(250)
+
+      expect(@invoice_1.discounts_for(@merchant1)).to eq(0)
+      expect(@invoice_1.discounts_for(@merchant2)).to eq(0)
 
       BulkDiscount.create!(percentage: 30, quantity: 15, merchant: @merchant1)
-      expect(@invoice_1.total_revenue).to eq(250)
-      expect(@invoice_1.revenue_with_discounts).to eq(205)
+
+      expect(@invoice_1.discounts_for(@merchant1)).to eq(45)
+      expect(@invoice_1.discounts_for(@merchant2)).to eq(0)
+
       BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant1)
       
-      expect(@invoice_1.total_revenue).to eq(250)
-      expect(@invoice_1.revenue_with_discounts).to eq(185)
+      expect(@invoice_1.discounts_for(@merchant1)).to eq(69)
+      expect(@invoice_1.discounts_for(@merchant2)).to eq(0)
+
+      BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant2)
+
+      expect(@invoice_1.discounts_for(@merchant1)).to eq(69)
+      expect(@invoice_1.discounts_for(@merchant2)).to eq(21.6)
     end
 
-    xit "discounts count by same item, and aren't cumulative to all items" do
-      merchantA = Merchant.create!(name: "Queen Soopers")
-      discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
-      itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
-      itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
-      customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
+    it "calculates total revenue with discounts by merchant" do
+      expect(@invoice_1.revenue_for(@merchant1)).to eq(270)
+      expect(@invoice_1.revenue_for(@merchant2)).to eq(108)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant1)).to eq(270)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant2)).to eq(108)
+      BulkDiscount.create!(percentage: 40, quantity: 20, merchant: @merchant1)
+      expect(@invoice_1.revenue_for(@merchant1)).to eq(270)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant1)).to eq(270)
 
-      invoiceA = Invoice.create!(customer: customer, status: 2)
-      invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 5, unit_price: 1000, status: 1)
-      invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 5, unit_price: 1000, status: 1)
+      BulkDiscount.create!(percentage: 30, quantity: 15, merchant: @merchant1)
+      expect(@invoice_1.revenue_for(@merchant1)).to eq(270)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant1)).to eq(225)
+      BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant1)
+      
+      expect(@invoice_1.revenue_for(@merchant1)).to eq(270)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant1)).to eq(201)
+      expect(@invoice_1.revenue_for(@merchant2)).to eq(108)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant2)).to eq(108)
 
-      expect(invoice_item1.discount).to eq(nil) 
-      expect(invoice_item2.discount).to eq(nil) 
-
-      invoice_item1.update(quantity: 10)
-
-      expect(invoice_item1.discount).to eq(discountA)
-      expect(invoice_item2.discount).to eq(nil)
-    end
-
-    xit "discounts by greatest applicable discount" do
-      merchantA = Merchant.create!(name: "Queen Soopers")
-      discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
-      discountB = merchantA.bulk_discounts.create!(percentage: 30, quantity: 15, merchant: merchantA)
-      itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
-      itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
-      customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
-
-      invoiceA = Invoice.create!(customer: customer, status: 2)
-      invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 12, unit_price: 1000, status: 1)
-      invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 15, unit_price: 1000, status: 1)
-
-      expect(invoice_item1.discount).to eq(discountA)
-      expect(invoice_item2.discount).to eq(discountB)
-
-      discountB.update(percentage: 15)
-
-      expect(invoice_item1.discount).to eq(discountA)
-      expect(invoice_item2.discount).to eq(discountA)
-    end
-
-    xit "discounts by specific merchant" do
-      merchantA = Merchant.create!(name: "Queen Soopers")
-      merchantB = Merchant.create!(name: "Someone Else")
-      discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
-      discountB = merchantA.bulk_discounts.create!(percentage: 30, quantity: 15, merchant: merchantA)
-      itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
-      itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
-      itemC = merchantB.items.create!(name: 'Thing', description: 'just a thing', unit_price: 3000, merchant: merchantB)
-      customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
-
-      invoiceA = Invoice.create!(customer: customer, status: 2)
-      invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 12, unit_price: 1000, status: 1)
-      invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 15, unit_price: 2000, status: 1)
-      invoice_item3 = InvoiceItem.create!(invoice: invoiceA, item: itemC, quantity: 15, unit_price: 3000, status: 1)
-
-      expect(invoice_item1.discount).to eq(discountA)
-      expect(invoice_item2.discount).to eq(discountB)
-      expect(invoice_item3.discount).to eq(nil)
+      BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant2)
+      
+      expect(@invoice_1.revenue_for(@merchant1)).to eq(270)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant1)).to eq(201)
+      expect(@invoice_1.revenue_for(@merchant2)).to eq(108)
+      expect(@invoice_1.revenue_with_discounts_for(@merchant2)).to eq(86.4)
     end
   end
 end
