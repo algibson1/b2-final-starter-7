@@ -42,7 +42,7 @@
               <%= form_with model: @invoice, url: merchant_invoice_path(@merchant, @invoice), method: :patch, local: true do |f| %>
                 <%= f.select :status, Invoice.statuses.keys, selected: "#{@invoice.status}" %>
                 <%= f.submit 'Update Invoice' %>
-            <td style="text-align:center"><%= "#{i.discount.percentage}% off" if i.discount %></td>
+            <td style="text-align:center"><%= link_to "#{i.discount.percentage}% Off", merchant_bulk_discount_path(@merchant, i.discount)  if i.discount %></td>
               <% end %>
               </td>
           </tr>
