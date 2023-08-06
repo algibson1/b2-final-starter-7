@@ -11,7 +11,8 @@
   <br>
 
   <p> Created on: <%= @invoice.created_at.strftime("%A, %B %-d, %Y") %></p>
-  <p>Total Revenue: <%= @invoice.total_revenue %></p>
+  <p>Total Revenue: <%= @invoice.revenue_for(@merchant) %></p>
+  <p><%= "Final Revenue With Discounts: #{@invoice.revenue_with_discounts_for(@merchant)}" if @invoice.discounts_for(@merchant) != 0 %></p>
 
 
   <h4>Customer:</h4>
@@ -31,7 +32,7 @@
     </thead>
 
     <tbody>
-      <% @invoice.invoice_items.each do |i| %>
+      <% @invoice.invoice_items_for(@merchant).each do |i| %>
         <section id="the-status-<%= i.id %>">
           <tr class="tr">
             <td style="text-align:center"><%= i.item.name %></td>
