@@ -135,116 +135,37 @@ RSpec.describe "invoices show" do
   end
 
   # User story 7
-  xit "shows discounts for each item, where applicable" do
+  it "shows discounts for each item, where applicable" do
     visit merchant_invoice_path(@merchant1, @invoice_1)
 
     expect(page).to_not have_link("20% Off")
 
-    discount = BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant1)
-
+    discount1 = BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant1)
     visit merchant_invoice_path(@merchant1, @invoice_1)
-
+    
+    expect(@ii_11.discount).to eq(discount1)
     within("#the-status-#{@ii_11.id}") do
-      expect(page).to have_link("20% off", href: merchant_bulk_discount_path(@merchant1, discount))
+      expect(page).to have_link("20% Off", href: merchant_bulk_discount_path(@merchant1, discount1))
     end
 
+    expect(@ii_1.discount).to eq(nil)
     within("#the-status-#{@ii_1.id}") do
       expect(page).to_not have_content("% Off")
     end
-  end
 
-  xit "discounts count by same item, and aren't cumulative to all items" do
-    merchantA = Merchant.create!(name: "Queen Soopers")
-    discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
-    itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
-    itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
-    customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
+    discount2 = BulkDiscount.create!(percentage: 30, quantity: 15, merchant: @merchant1)
+    @ii_1.update(quantity: 10)
+    @ii_11.update(quantity: 15)
+    visit merchant_invoice_path(@merchant1, @invoice_1)
 
-    invoiceA = Invoice.create!(customer: customer, status: 2)
-    invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 5, unit_price: 1000, status: 1)
-    invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 5, unit_price: 1000, status: 1)
-
-    visit merchant_invoice_path(mechantA, invoiceA)
-    expect(page).to_not have_content("20% off")
-    # expect(page).to_not have_content("whatever the discount total is")
-
-    invoice_item1.update(quantity: 10)
-    visit merchant_invoice_path(mechantA, invoiceA)
-    expect(page).to have_content("whatever the discount total is")
-
-    within("#invoice-#{invoice_item1.id}") do
-      expect(page).to have_content("20% Off")
+    expect(@ii_11.discount).to eq(discount2)
+    within("#the-status-#{@ii_11.id}") do
+      expect(page).to have_link("30% Off", href: merchant_bulk_discount_path(@merchant1, discount2))
     end
 
-    within("#invoice-#{invoice_item2.id}") do
-      expect(page).to_not have_content("20% Off")
+    expect(@ii_1.discount).to eq(discount1)
+    within("#the-status-#{@ii_1.id}") do
+      expect(page).to have_link("20% Off", href: merchant_bulk_discount_path(@merchant1, discount1))
     end
-  end
-
-  xit "discounts by greatest applicable discount" do
-    merchantA = Merchant.create!(name: "Queen Soopers")
-    discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
-    discountB = merchantA.bulk_discounts.create!(percentage: 30, quantity: 15, merchant: merchantA)
-    itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
-    itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
-    customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
-
-    invoiceA = Invoice.create!(customer: customer, status: 2)
-    invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 12, unit_price: 1000, status: 1)
-    invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 15, unit_price: 1000, status: 1)
-
-    visit merchant_invoice_path(merchantA, invoiceA)
-    within("#invoice_item_#{invoice_item1.id}") do
-      expect(page).to have_content("20% Off")
-    end
-
-    within("#invoice_item_#{invoice_item2.id}") do
-      expect(page).to have_content("30% Off")
-    end
-
-    expect(page).to have_content("whatever revenue_with_discounts_for_merchant is")
-
-    discountB.update(percentage: 15)
-    visit merchant_invoice_path(merchantA, invoiceA)
-    within("#invoice_item_#{invoice_item1.id}") do
-      expect(page).to have_content("20% Off")
-    end
-
-    within("#invoice_item_#{invoice_item2.id}") do
-      expect(page).to have_content("20% Off")
-    end
-
-    expect(page).to have_content("whatever the new revenue_with_discounts_for_merchant is")
-  end
-
-  xit "discounts are not affected by other merchant items on invoice" do
-    merchantA = Merchant.create!(name: "Queen Soopers")
-    merchantB = Merchant.create!(name: "Someone Else")
-    discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
-    discountB = merchantA.bulk_discounts.create!(percentage: 30, quantity: 15, merchant: merchantA)
-    itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
-    itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
-    itemC = merchantB.items.create!(name: 'Thing', description: 'just a thing', unit_price: 3000, merchant: merchantB)
-    customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
-
-    invoiceA = Invoice.create!(customer: customer, status: 2)
-    invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 12, unit_price: 1000, status: 1)
-    invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 15, unit_price: 2000, status: 1)
-    invoice_item3 = InvoiceItem.create!(invoice: invoiceA, item: itemC, quantity: 15, unit_price: 3000, status: 1)
-
-    visit merchant_invoice_path(merchantA, invoiceA)
-
-    within("#invoice_item_#{invoice_item1.id}") do
-      expect(page).to have_content("20% Off")
-    end
-
-    within("#invoice_item_#{invoice_item2.id}") do
-      expect(page).to have_content("30% Off")
-    end
-
-    expect(page).to have_content("total merchant revenue")
-    expect(invoice_item1.discount).to eq(discountA)
-    expect(invoice_item2.discount).to eq(discountB)
-    expect(invoice_item3.discount).to eq(nil)
   end
 end
