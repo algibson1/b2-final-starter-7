@@ -4,4 +4,5 @@ class BulkDiscount < ApplicationRecord
   validates_numericality_of :quantity
 
   belongs_to :merchant
+  has_many :invoice_items, through: :merchant
 end
