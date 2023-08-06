@@ -14,6 +14,8 @@
       <% end %>
   <p>Created on: <%= @invoice.created_at.strftime("%A, %B %d, %Y") %>
   <p>Total Revenue: <%= number_to_currency(@invoice.total_revenue) %>
+  <p><%= "Final Revenue With Discounts: #{number_to_currency(@invoice.revenue_with_discounts)}" if @invoice.all_discounts != 0 %></p>
+
 
   <h4>Customer:</h4>
     <%= @invoice.customer.first_name %> <%= @invoice.customer.last_name %><br>
@@ -29,17 +31,21 @@
         <th class="th1">Quantity</th>
         <th class="th1">Unit Price</th>
         <th class="th1">Status</th>
+        <th class="th1">Discount</th>
       </tr>
     </thead>
 
     <tbody>
       <% @invoice.invoice_items.each do |i| %>
+      <div id="the-status-<%= i.id %>-admin">
         <tr class="tr">
           <td style="text-align:center"><%= i.item.name %></td>
           <td style="text-align:center"><%= i.quantity %></td>
           <td style="text-align:center"><%= number_to_currency(i.unit_price) %></td>
           <td style="text-align:center"><%= i.status%></td>
+          <td style="text-align:center"><%= "#{i.discount.percentage}% Off" if i.discount %></td>
         </tr>
+      </div>
       <% end %>
     </tbody>
   </table>
