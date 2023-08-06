@@ -69,4 +69,36 @@ describe "Admin Invoices Index Page" do
       expect(@i1.status).to eq("completed")
     end
   end
+
+  xit "discounts are specific to merchant" do
+    merchantA = Merchant.create!(name: "Queen Soopers")
+    merchantB = Merchant.create!(name: "Someone Else")
+    discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
+    discountB = merchantA.bulk_discounts.create!(percentage: 30, quantity: 15, merchant: merchantA)
+    itemA = merchantA.items.create!(name: 'Cheese', description: 'Cheddar goodness', unit_price: 1000, merchant: merchantA)
+    itemB = merchantA.items.create!(name: 'CousCous', description: 'yummy', unit_price: 2000, merchant: merchantA)
+    itemC = merchantB.items.create!(name: 'Thing', description: 'just a thing', unit_price: 3000, merchant: merchantB)
+    customer = Customer.create!(first_name: 'Bilbo', last_name: 'Baggins')
+
+    invoiceA = Invoice.create!(customer: customer, status: 2)
+    invoice_item1 = InvoiceItem.create!(invoice: invoiceA, item: itemA, quantity: 12, unit_price: 1000, status: 1)
+    invoice_item2 = InvoiceItem.create!(invoice: invoiceA, item: itemB, quantity: 15, unit_price: 2000, status: 1)
+    invoice_item3 = InvoiceItem.create!(invoice: invoiceA, item: itemC, quantity: 15, unit_price: 3000, status: 1)
+
+    visit admin_invoice_path(invoiceA)
+
+    within("#invoice_item_#{invoice_item1.id}") do
+      expect(page).to have_content("20% Off")
+    end
+
+    within("#invoice_item_#{invoice_item2.id}") do
+      expect(page).to have_content("30% Off")
+    end
+
+    within("#invoice_item-#{invoice_item3.id}") do
+      expect(page).to_not have_content("Off")
+    end
+
+    expect(page).to have_content("total revenue")
+  end
 end
