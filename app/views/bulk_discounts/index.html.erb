@@ -1,5 +1,11 @@
 <%= render partial: "shared/nav" %>
 
+<h2>Upcoming Holidays</h2>
+<% @upcoming_holidays.each do |holiday| %>
+  <%= holiday.name %> - <%= holiday.date %><br>
+<% end %>
+<br>
+
 <%= link_to "New Promotion", new_merchant_bulk_discount_path(@merchant)%>
 <% @discounts.each do |discount| %>
   <div id="discount-<%= discount.id %>">

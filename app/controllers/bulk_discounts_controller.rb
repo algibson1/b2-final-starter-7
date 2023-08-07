@@ -4,6 +4,7 @@ class BulkDiscountsController < ApplicationController
 
   def index
     @discounts = @merchant.bulk_discounts
+    @upcoming_holidays = HolidayService.new.next_3_holidays
   end
 
   def new
