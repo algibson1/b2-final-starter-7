@@ -98,4 +98,21 @@ RSpec.describe "Bulk discounts index page" do
     expect(page).to have_content("Promotion ##{@discount1.id} Successfully Deleted")
     expect(page).to_not have_content("20% off bulk purchases of 10 or more items")
   end
+
+  #User Story 9 
+  it "lists the next three upcoming holidays" do
+    visit merchant_bulk_discounts_path(@merchant1)
+
+    expect(page).to have_content("Upcoming Holidays")
+
+    holidays = HolidayService.new.next_3_holidays
+
+    expect(page).to have_content("#{holidays[0].name} - #{holidays[0].date}")
+    expect(page).to have_content("#{holidays[1].name} - #{holidays[1].date}")
+    expect(page).to have_content("#{holidays[2].name} - #{holidays[2].date}")
+
+    expect(Date.today < holidays[0].date.to_date).to eq(true)
+    expect(holidays[0].name).to appear_before(holidays[1].name)
+    expect(holidays[1].name).to appear_before(holidays[2].name)
+  end
 end
