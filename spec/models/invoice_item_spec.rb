@@ -43,7 +43,7 @@ RSpec.describe InvoiceItem, type: :model do
       expect(InvoiceItem.incomplete_invoices).to eq([@i1, @i3])
     end
 
-    describe "discount methods" do
+    describe "discount method" do
       it "discounts count by same item, and aren't cumulative to all items" do
         merchantA = Merchant.create!(name: "Queen Soopers")
         discountA = merchantA.bulk_discounts.create!(percentage: 20, quantity: 10, merchant: merchantA)
