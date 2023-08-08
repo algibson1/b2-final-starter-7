@@ -20,23 +20,19 @@ RSpec.describe "bulk discounts edit page" do
   end
 
   it "can update an existing discount" do
-    visit merchant_bulk_discounts_path(@merchant1)
+    visit merchant_bulk_discount_path(@merchant1, @discount1)
 
-    within("#discount-#{@discount1.id}") do
-      expect(page).to have_content("20% off bulk purchases of 10 or more items")
-      click_link("Edit Promotion ##{@discount1.id}")
-    end
+    expect(page).to have_content("20% off bulk purchases of 10 or more items")
+    click_link("Edit Promotion ##{@discount1.id}")
     
     fill_in(:percentage, with: 30)
     fill_in(:quantity, with: 20)
     click_button("Submit")
     
-    expect(current_path).to eq(merchant_bulk_discounts_path(@merchant1))
+    expect(current_path).to eq(merchant_bulk_discount_path(@merchant1, @discount1))
 
-    within("#discount-#{@discount1.id}") do
-      expect(page).to have_content("30% off bulk purchases of 20 or more items")
-      expect(page).to_not have_content("20% off bulk purchases of 10 or more items")
-    end
+    expect(page).to have_content("30% off bulk purchases of 20 or more items")
+    expect(page).to_not have_content("20% off bulk purchases of 10 or more items")
   end
 
   it "throws an error if fields left blank" do
