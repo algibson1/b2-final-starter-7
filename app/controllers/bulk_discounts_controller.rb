@@ -29,7 +29,7 @@ class BulkDiscountsController < ApplicationController
   
   def update
     if @discount.update(discount_params)
-      redirect_to merchant_bulk_discounts_path(discount_params)
+      redirect_to merchant_bulk_discount_path(discount_params)
     else
       redirect_to edit_merchant_bulk_discount_path(discount_params)
       flash[:alert] = "Please fill in all fields" if params[:percentage].empty? || params[:quantity].empty?
