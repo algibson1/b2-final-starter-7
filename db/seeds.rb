@@ -15,8 +15,3 @@ Merchant.destroy_all
 Customer.destroy_all
 
 Rake::Task["csv_load:all"].invoke
-
-merchant_ids = Merchant.all.map {|merchant| merchant.id}
-300.times do |i|
-  FactoryBot.create(:bulk_discount, merchant_id: merchant_ids.sample)
-end
