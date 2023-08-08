@@ -121,17 +121,17 @@ RSpec.describe "invoices show" do
   it "shows final discounted revenue for this invoice for this merchant" do
     visit merchant_invoice_path(@merchant1, @invoice_1)
 
-    expect(page).to have_content("Total Revenue: 162.0")
+    expect(page).to have_content("Total Revenue: $162.0")
     expect(page).to_not have_content("Final Revenue With Discounts:")
     
     discount = BulkDiscount.create!(percentage: 20, quantity: 10, merchant: @merchant1)
     
     visit merchant_invoice_path(@merchant1, @invoice_1)
 
-    expect(page).to have_content("Total Revenue: 162")
+    expect(page).to have_content("Total Revenue: $162")
     expect(@invoice_1.discounts_for(@merchant1)).to eq(14.4)
     expect(@invoice_1.revenue_with_discounts_for(@merchant1)).to eq(147.6)
-    expect(page).to have_content("Final Revenue With Discounts: 147.6")
+    expect(page).to have_content("Final Revenue With Discounts: $147.6")
   end
 
   # User story 7

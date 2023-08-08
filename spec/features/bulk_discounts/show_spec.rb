@@ -15,7 +15,8 @@ RSpec.describe "Bulk discount show page" do
     visit merchant_bulk_discount_path(@merchant1, @discount1)
 
     expect(page).to have_content("Promotion ##{@discount1.id}")
-    expect(page).to have_content("20% off a bulk purchase of 10 or more items")
+    expect(page).to have_content("20% off bulk purchases of 10 or more items")
+    expect(page).to have_link("Edit Promotion ##{@discount1.id}", href: edit_merchant_bulk_discount_path(@merchant1, @discount1))
     expect(page).to_not have_content("Promotion ##{@discount2.id}")
   end
 end

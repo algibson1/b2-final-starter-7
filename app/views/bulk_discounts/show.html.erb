@@ -2,4 +2,5 @@
 
 <h1>Promotion #<%= @discount.id %></h1>
 
-<p><%= @discount.percentage %>% off a bulk purchase of <%= @discount.quantity %> or more items</p>
+<p><%= @discount.percentage %>% off bulk purchases of <%= @discount.quantity %> or more items</p>
+<p><%= link_to "Edit Promotion ##{@discount.id}", edit_merchant_bulk_discount_path(@merchant, @discount) %>
