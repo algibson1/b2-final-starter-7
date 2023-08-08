@@ -62,29 +62,25 @@ RSpec.describe "Bulk discounts index page" do
     within("#discount-#{@discount1.id}") do
       expect(page).to have_link("Promotion ##{@discount1.id}", href: merchant_bulk_discount_path(@merchant1, @discount1))
       expect(page).to have_content("20% off bulk purchases of 10 or more items")
-      expect(page).to have_link("Edit Promotion ##{@discount1.id}", href: edit_merchant_bulk_discount_path(@merchant1, @discount1))
-      expect(page).to have_link("Delete Promotion ##{@discount1.id}")
+      expect(page).to have_button("Delete Promotion ##{@discount1.id}")
     end
     
     within("#discount-#{@discount2.id}") do
       expect(page).to have_link("Promotion ##{@discount2.id}", href: merchant_bulk_discount_path(@merchant1, @discount2))
       expect(page).to have_content("15% off bulk purchases of 7 or more items")
-      expect(page).to have_link("Edit Promotion ##{@discount2.id}", href: edit_merchant_bulk_discount_path(@merchant1, @discount2))
-      expect(page).to have_link("Delete Promotion ##{@discount2.id}")
+      expect(page).to have_button("Delete Promotion ##{@discount2.id}")
     end
     
     within("#discount-#{@discount3.id}") do
       expect(page).to have_link("Promotion ##{@discount3.id}", href: merchant_bulk_discount_path(@merchant1, @discount3))
       expect(page).to have_content("25% off bulk purchases of 15 or more items")
-      expect(page).to have_link("Edit Promotion ##{@discount3.id}", href: edit_merchant_bulk_discount_path(@merchant1, @discount3))
-      expect(page).to have_link("Delete Promotion ##{@discount3.id}")
+      expect(page).to have_button("Delete Promotion ##{@discount3.id}")
     end
     
     within("#discount-#{@discount4.id}") do
       expect(page).to have_link("Promotion ##{@discount4.id}", href: merchant_bulk_discount_path(@merchant1, @discount4))
       expect(page).to have_content("30% off bulk purchases of 20 or more items")
-      expect(page).to have_link("Edit Promotion ##{@discount4.id}", href: edit_merchant_bulk_discount_path(@merchant1, @discount4))
-      expect(page).to have_link("Delete Promotion ##{@discount4.id}")
+      expect(page).to have_button("Delete Promotion ##{@discount4.id}")
     end
   end
 
@@ -93,7 +89,7 @@ RSpec.describe "Bulk discounts index page" do
     visit merchant_bulk_discounts_path(@merchant1)
     expect(page).to have_content("20% off bulk purchases of 10 or more items")
 
-    click_link("Delete Promotion ##{@discount1.id}")
+    click_button("Delete Promotion ##{@discount1.id}")
 
     expect(page).to have_content("Promotion ##{@discount1.id} Successfully Deleted")
     expect(page).to_not have_content("20% off bulk purchases of 10 or more items")
